@@ -57,7 +57,7 @@ Only by moving the two Paddles up and down to protect the ball from touching the
 - [ ] Enabling to enter players' names before start.
 - [ ] Adding ball grpahic.
 - [ ] Adding the Paddles graphics.
-- [ ] Taking playes' feedback.
+- [ ] Taking players' feedback.
 
 <p align="center">|</p>
 <p align="center">
