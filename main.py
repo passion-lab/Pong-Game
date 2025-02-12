@@ -3,6 +3,21 @@
 import time
 import pygame as pg
 import sys
+from os import path
+
+
+
+# ---
+# >> IMPORTANT: PATH ISSUE FIXED
+# Base path determination dynamically (required for .exe done with PyInstaller)
+if getattr(sys, 'frozen', False):
+    # Running as an executable where PyInstaller extract files/dirs (`_internal`)
+    BASE_PATH = sys._MEIPASS
+else:
+    BASE_PATH = path.dirname(path.abspath(__file__))
+# ---
+
+
 
 # GLOBAL VARIABLES
 
@@ -31,13 +46,14 @@ COLOR_DICTIONARY: dict[str: tuple[int, int, int]] = {
     "Paddle": (255, 255, 255),
     "Ball": (255, 65, 0)
 }
+SOURCE_PATH: str = path.join(BASE_PATH, "sources")
 SOUND_EFFECTS: dict[str: str | bytes] = {
-    "wall_hit": "./sources/SFX/paddle-hit-2.mp3",
-    "paddle_hit": "./sources/SFX/paddle-hit-1.mp3",
-    "hit_miss": "./sources/SFX/miss.wav",
-    "tick": "./sources/SFX/ticks.wav",
-    "game_over": "./sources/SFX/game-over.wav",
-    "result": "./sources/SFX/result.wav",
+    "wall_hit": f"{SOURCE_PATH}/SFX/paddle-hit-2.mp3",
+    "paddle_hit": f"{SOURCE_PATH}/SFX/paddle-hit-1.mp3",
+    "hit_miss": f"{SOURCE_PATH}/SFX/miss.wav",
+    "tick": f"{SOURCE_PATH}/SFX/ticks.wav",
+    "game_over": f"{SOURCE_PATH}/SFX/game-over.wav",
+    "result": f"{SOURCE_PATH}/SFX/result.wav",
 }
 
 # DERIVED VARIABLES
@@ -46,21 +62,22 @@ _screen_centre: tuple[int, int] = (SCREEN_W // 2, SCREEN_H // 2)
 _x_margin: int = 50
 
 
+
 # CLASS FOR LOADING OF IMAGES AND FONTS
 
 class FileLoader:
     def __init__(self):
         # Loads font files
-        self.num_font = pg.font.Font("./sources/Fonts/RobotoCondensed-Bold.ttf", 25)
-        self.text_font = pg.font.Font("./sources/Fonts/RobotoCondensed-Regular.ttf", 15)
+        self.num_font = pg.font.Font(f"{SOURCE_PATH}/Fonts/RobotoCondensed-Bold.ttf", 25)
+        self.text_font = pg.font.Font(f"{SOURCE_PATH}/Fonts/RobotoCondensed-Regular.ttf", 15)
 
         # Load image files
-        self.icon = pg.image.load("./sources/icon.png")
-        self.banner = pg.image.load("./sources/banner.png")
-        self.bg = pg.image.load("./sources/bg.png")
-        self.bg_rect = pg.image.load("./sources/bg_rectangle.png")
-        self.winner_batch = pg.image.load("./sources/winner_batch.png")
-        self.btn_replay = pg.image.load("./sources/btn_replay.png")
+        self.icon = pg.image.load(f"{SOURCE_PATH}/icon.png")
+        self.banner = pg.image.load(f"{SOURCE_PATH}/banner.png")
+        self.bg = pg.image.load(f"{SOURCE_PATH}/bg.png")
+        self.bg_rect = pg.image.load(f"{SOURCE_PATH}/bg_rectangle.png")
+        self.winner_batch = pg.image.load(f"{SOURCE_PATH}/winner_batch.png")
+        self.btn_replay = pg.image.load(f"{SOURCE_PATH}/btn_replay.png")
 
 
 # CLASS FOR SOUND MANAGEMENT
