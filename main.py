@@ -21,7 +21,7 @@ else:
 
 # GLOBAL VARIABLES
 
-NAME: str = "PONG"
+NAME: str = "PONG Game ○ Passion-Lab"
 PLAYERS: tuple[str, str] = ("Player A", "Player B")
 SCREEN_H: int = 600
 SCREEN_W: int = 800
@@ -230,6 +230,7 @@ class PongGame:
                 self.background_surface.blit(self.files.banner,
                                              (_screen_centre[0] - self.files.banner.get_width() // 2,
                                               _screen_centre[1] - self.files.banner.get_height() // 2))
+                
                 subtitle = self.files.text_font.render("Press SPACE to Start", True, COLOR_DICTIONARY["Paddle"])
                 self.background_surface.blit(subtitle, (_screen_centre[0] - subtitle.get_width() // 2, SCREEN_H - 50))
 
