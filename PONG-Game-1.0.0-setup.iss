@@ -3,7 +3,7 @@
 
 #define MyAppName "PONG Game"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Passion-Lab, Inc."
+#define MyAppPublisher "Passion-Lab"
 #define MyAppURL "https://www.passion-lab.github.io/"
 #define MyAppExeName "Pong.exe"
 
@@ -19,7 +19,6 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\Passion-Lab\PONG Game
-UninstallDisplayIcon={app}\{#MyAppExeName}
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
 ArchitecturesAllowed=x64compatible
@@ -44,6 +43,8 @@ WizardStyle=modern
 DisableWelcomePage=no
 WizardSmallImageFile=logo.bmp
 WizardImageFile=banner.bmp
+Uninstallable=yes
+UninstallDisplayIcon={app}\icons\unins.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -59,6 +60,8 @@ Root: HKA; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; Flags: uninsdelete
 Root: HKA; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "Installed"; ValueData: "1"
 Root: HKA; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
 Root: HKA; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; ValueType: string; ValueName: "CurrentVersion"; ValueData: "{#MyAppVersion}"
+; Custom uninstallation entry
+Root: HKA; Subkey: "Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppName}"; ValueType: string; ValueName: "DisplayIcon"; ValueData: "{app}\icons\unins.ico"; Flags: uninsdeletekey
 
 [UninstallDelete]
 ; Ensures deletion of all leftover files and folders matches with the app name upon uninstallation
@@ -66,21 +69,23 @@ Type: filesandordirs; Name: "{app}"
 
 [Files]
 Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\Pong-Windows_v1.0\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\Pong-Windows_v1.0\_internal\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\Pong-Windows_v1.0\_internal\README.md"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\Pong-Windows_v1.0\_internal\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\Pong-Windows_v1.0\_internal\*"; DestDir: "{app}\_internal\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Passion-Lab\Python\Pong-Game\Improvements.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Passion-Lab\Python\Pong-Game\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Passion-Lab\Python\Pong-Game\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\icon_install.ico"; DestDir: "{app}\icons\"; DestName: "ins.ico"; Flags: ignoreversion
+Source: "D:\Passion-Lab\Python\Pong-Game\dist-Windows\icon_uninstall.ico"; DestDir: "{app}\icons\"; DestName: "unins.ico"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 ; Creates Start Menu shortcuts
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}"
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; IconFilename: "{app}\icon_uninstall.ico"
+Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; IconFilename: "{app}\icons\unins.ico"
 ; Creates Desktop shortcut
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-; Creates Quick Launch (Taskbar) shortcut. Use "{userappdata}" option for CurrentUserOnly mode, else "{commonappdata}" for AllUser installation mode
-; Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
-Name: "{commonappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+; Creates Quick Launch (Taskbar) shortcut
+Name: "{autoappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}.lnk"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
