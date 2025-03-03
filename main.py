@@ -129,7 +129,7 @@ class PongGame:
         # Loading the necessary files to render later
         self.files = FileLoader()
 
-        self.screen: pg.Surface = pg.display.set_mode((SCREEN_W, SCREEN_H))
+        self.screen: pg.Surface = pg.display.set_mode((SCREEN_W, SCREEN_H), pg.RESIZABLE)
         pg.display.set_caption(NAME)
         pg.display.set_icon(self.files.icon)
 
@@ -185,8 +185,7 @@ class PongGame:
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     self.state = GameState.RUNNING
                 if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                    pg.quit()
-                    sys.exit()
+                    pass
             elif self.state == GameState.RUNNING:
                 if event.type == pg.KEYDOWN and (event.key == pg.K_ESCAPE or event.key == pg.K_SPACE):
                     self.state = GameState.HOLD
