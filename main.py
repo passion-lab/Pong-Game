@@ -129,7 +129,7 @@ class PongGame:
         # Loading the necessary files to render later
         self.files = FileLoader()
 
-        self.screen: pg.Surface = pg.display.set_mode((SCREEN_W, SCREEN_H), pg.RESIZABLE)
+        self.screen: pg.Surface = pg.display.set_mode((SCREEN_W, SCREEN_H))  # pg.RESIZABLE argument for resizing the window
         pg.display.set_caption(NAME)
         pg.display.set_icon(self.files.icon)
 
