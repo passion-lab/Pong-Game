@@ -230,7 +230,7 @@ class PongGame:
                 # todo: Blank top space for score and other rendering
                 # top = pg.Rect((0, 0, SCREEN_W, SCREEN_H))
                 # t1= pg.draw.rect(self.background_surface, COLOR_DICTIONARY["White"], top)
-                # self.background_surface.blit(self.files.bg, (0, 50))
+                self.background_surface.blit(self.files.bg, (0, 0))
                 self.background_surface.blit(self.files.banner,
                                              (_screen_centre[0] - self.files.banner.get_width() // 2,
                                               _screen_centre[1] - self.files.banner.get_height() // 2))
