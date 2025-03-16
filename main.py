@@ -78,6 +78,7 @@ class FileLoader:
         self.bg_rect = pg.image.load(f"{SOURCE_PATH}/bg_rectangle.png")
         self.winner_batch = pg.image.load(f"{SOURCE_PATH}/winner_batch.png")
         self.btn_replay = pg.image.load(f"{SOURCE_PATH}/btn_replay.png")
+        self.pong_ball = pg.image.load(f"{SOURCE_PATH}/pong_ball.png")
 
 
 # CLASS FOR SOUND MANAGEMENT
@@ -147,8 +148,9 @@ class PongGame:
         self.left_paddle = Paddle(self.background_surface, _x_margin, _screen_centre[1] - PADDLE_H // 2)
         self.right_paddle = Paddle(self.background_surface, SCREEN_W - _x_margin - PADDLE_W,
                                    _screen_centre[1] - PADDLE_H // 2)
+        # Give pong ball image to render the ball from the image
         self.ball = Ball(self.background_surface, _screen_centre[0] - BALL_SIZE // 2,
-                         _screen_centre[1] - BALL_SIZE // 2)
+                         _screen_centre[1] - BALL_SIZE // 2, self.files.pong_ball)
 
         # Initializing the game with both players' score 0 then update as condition
         self.left_score: int = 0
@@ -225,7 +227,10 @@ class PongGame:
                 self.left_score = self.right_score = self.ball_miss_times = 0
                 self._result_sfx_play = False
 
-                self.background_surface.blit(self.files.bg, (0, 0))
+                # todo: Blank top space for score and other rendering
+                # top = pg.Rect((0, 0, SCREEN_W, SCREEN_H))
+                # t1= pg.draw.rect(self.background_surface, COLOR_DICTIONARY["White"], top)
+                # self.background_surface.blit(self.files.bg, (0, 50))
                 self.background_surface.blit(self.files.banner,
                                              (_screen_centre[0] - self.files.banner.get_width() // 2,
                                               _screen_centre[1] - self.files.banner.get_height() // 2))
@@ -383,19 +388,24 @@ class Paddle:
 # CLASS FOR MAKING AND MOVING THE BALL
 
 class Ball:
-    def __init__(self, screen: pg.Surface, x_cord, y_cord) -> None:
+    def __init__(self, screen: pg.Surface, x_cord, y_cord, ball_image: pg.Surface | None = None) -> None:
         self.screen = screen
+        self.ball_image = ball_image
 
-        # Creates an empty shape of the ball_shape
-        self.ball_shape = pg.Rect(x_cord, y_cord, BALL_SIZE, BALL_SIZE)
+        # Gets ball image's rect if image surface is given or, Creates an empty shape of the ball_shape
+        self.ball_shape = self.ball_image.get_rect() if self.ball_image else pg.Rect(x_cord, y_cord, BALL_SIZE, BALL_SIZE)
 
         # For moving the ball_shape to the reverse direction later
         self.move_x = BALL_SPEED
         self.move_y = BALL_SPEED
 
     def draw(self) -> None:
-        # Draws the empty shape on the screen with color
-        pg.draw.ellipse(self.screen, COLOR_DICTIONARY["Ball"], self.ball_shape)
+        if self.ball_image:
+            # Renders the ball image if given
+            self.screen.blit(self.ball_image, (self.ball_shape.x, self.ball_shape.y))
+        else:
+            # Draws the empty shape on the screen with color
+            pg.draw.ellipse(self.screen, COLOR_DICTIONARY["Ball"], self.ball_shape)
 
     def move(self, l_paddle: pg.Rect, r_paddle: pg.Rect) -> None:
         """
