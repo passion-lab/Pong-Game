@@ -66,6 +66,10 @@ _x_margin: int = 50
 # CLASS FOR LOADING OF IMAGES AND FONTS
 
 class FileLoader:
+    """
+    Loads and manages all the necessary files for the game.
+    """
+
     def __init__(self):
         # Loads font files
         self.num_font = pg.font.Font(f"{SOURCE_PATH}/Fonts/RobotoCondensed-Bold.ttf", 25)
@@ -124,6 +128,28 @@ sfx = SoundManager(SOUND_EFFECTS)
 # CLASS FOR MAIN GAMING CONTROL
 
 class PongGame:
+    """
+    Main game controller class for the Pong game implementation.
+
+    This class handles:
+    - Game initialization and setup
+    - Game state management (Start, Running, Paused, Over, Hold)
+    - Screen rendering and display
+    - Score tracking and updates
+    - Event handling (keyboard/mouse inputs)
+    - Game loop control
+    - Collision detection and physics
+    - Sound effect management
+    - Player interaction and UI elements
+
+    The class serves as the central coordinator for all game components including:
+    - Paddles (left and right)
+    - Ball movement and physics
+    - Score display
+    - Game states and transitions
+    - Visual effects and animations
+    """
+    
     def __init__(self):
         pg.init()
 
@@ -168,6 +194,27 @@ class PongGame:
         self._result_sfx_play: bool = False
 
     def run(self):
+        """
+        Main game loop that runs continuously until the game is closed.
+        
+        This method:
+        - Handles the core game loop
+        - Updates the game state and screen
+        - Manages frame rate
+        - Renders all game elements
+        
+        The loop performs the following operations each frame:
+        1. Processes all game events
+        2. Updates the screen with background
+        3. Updates game state and object positions
+        4. Draws all game elements
+        5. Refreshes the display
+        6. Maintains consistent 60 FPS
+        
+        Returns:
+            None
+        """
+
         while True:
             self.event_handler()
             self.screen.blit(self.background_surface, (0, 0))
@@ -177,6 +224,31 @@ class PongGame:
             self.clock.tick(60)
 
     def event_handler(self):
+        """
+        Handles all game events and user inputs to manage game state transitions.
+
+        This method processes PyGame events including:
+        - Window close events (X button)
+        - Keyboard inputs (Space, Escape)
+        - Mouse clicks (for replay button)
+        
+        Game state transitions:
+        - START state:
+            - SPACE -> RUNNING state
+            - ESC -> No effect
+        - RUNNING state:
+            - SPACE/ESC -> HOLD state
+        - HOLD state:
+            - SPACE/ESC -> RUNNING state
+        - OVER state:
+            - SPACE -> START state
+            - ESC -> Quit game
+            - Click replay button -> START state
+
+        Returns:
+            None
+        """
+        
         # Getting all events
         for event in pg.event.get():
 
@@ -209,6 +281,26 @@ class PongGame:
                         self.state = GameState.START
 
     def score_cards(self):
+        """
+        Renders and displays the score cards for both players on the game screen.
+
+        This method:
+        - Renders player names and their current scores using the game fonts
+        - Positions the score elements in the top corners of the screen
+        - Left player (Player A) score is shown in top-left
+        - Right player (Player B) score is shown in top-right
+        - Player names are displayed below their respective scores
+        - Uses predefined colors from COLOR_DICTIONARY for consistent styling
+
+        The layout is:
+        Top-left:          Top-right:
+        [Score A]          [Score B]
+        [Player A]         [Player B]
+
+        Returns:
+            None
+        """
+        
         # Render the font with text, color
         player_a_text = self.files.text_font.render(PLAYERS[0], True, COLOR_DICTIONARY["Grey"])
         left_score_text = self.files.num_font.render(str(self.left_score), True, COLOR_DICTIONARY["Ball"])
@@ -223,6 +315,29 @@ class PongGame:
                                                      _x_margin + right_score_text.get_height()))
 
     def draw_all(self):
+        """
+        Renders all game elements based on the current game state.
+
+        This method handles the drawing of different game screens and elements depending
+        on the current state of the game (START, RUNNING, HOLD, PAUSED, or OVER).
+
+        For each state:
+        - START: Displays the welcome screen with game banner and start instructions
+        - RUNNING: Shows the active gameplay with paddles, ball, and score
+        - HOLD: Overlays a pause message on the current game screen
+        - PAUSED: Displays countdown or game over message between ball resets
+        - OVER: Shows the final game results and winner announcement
+
+        The method uses various surfaces to handle:
+        - Background elements (self.background_surface)
+        - Transparent overlays (self.transparent_surface)
+        - Dynamic text rendering
+        - UI elements like buttons and banners
+
+        Returns:
+            None
+        """
+
         # Game state management
         match self.state:
             case GameState.START:
@@ -273,6 +388,31 @@ class PongGame:
                 self.results()
 
     def next_move_countdown(self):
+        """
+        Displays a countdown timer between ball resets and manages game state transitions.
+
+        This method:
+        - Increments the ball miss counter
+        - Shows a 3-2-1 countdown animation between plays
+        - Displays the number of balls missed and remaining
+        - Plays appropriate sound effects
+        - Handles the transition to GAME OVER state when max misses reached
+        
+        The countdown is displayed on a transparent overlay with:
+        - Countdown numbers in the center
+        - Ball miss status below the numbers
+        - Different colors based on game state (normal vs game over)
+        
+        State Transitions:
+        - If ball_miss_times < BALL_MISS_TIMEOUT: 
+            Returns to RUNNING state after countdown
+        - If ball_miss_times == BALL_MISS_TIMEOUT: 
+            Transitions to OVER state
+        
+        Returns:
+            None
+        """
+        
         self.ball_miss_times += 1
 
         for i in range(3, 0, -1):
@@ -308,6 +448,31 @@ class PongGame:
                 self.state = GameState.RUNNING
 
     def results(self):
+        """
+        Displays the game results screen showing the winner and final scores.
+
+        This method:
+        - Plays the result sound effect (only once)
+        - Renders the background and winner batch image
+        - Displays the replay button and space bar instruction
+        - Shows the winner announcement based on final scores
+        - Includes congratulatory messages and visual elements
+
+        The results screen contains:
+        - Winner batch graphic at the top
+        - Winner announcement with player name
+        - Congratulatory message
+        - Replay button
+        - Alternative space bar instruction
+
+        State Management:
+        - Tracks if result sound effect has been played
+        - Stores replay button rectangle for click detection
+
+        Returns:
+            None
+        """
+        
         if not self._result_sfx_play:
             sfx.play_stop_sfx("result")
             self._result_sfx_play = True
@@ -334,6 +499,32 @@ class PongGame:
         self.background_surface.blit(_text2, (_screen_centre[0] - _text2.get_width() // 2, _t1.bottom + 10))
 
     def score_update(self):
+        """
+        Updates the game score and manages ball reset when it hits the side walls.
+
+        This method:
+        - Checks if the ball hits either the left or right wall
+        - Increments the appropriate player's score when a point is scored
+        - Resets the ball position to center
+        - Plays appropriate sound effects (wall hit and miss sounds)
+        - Changes game state to PAUSED for the countdown sequence
+
+        Score Updates:
+        - Left wall hit: Right player (Player B) scores a point
+        - Right wall hit: Left player (Player A) scores a point
+
+        State Changes:
+        - Changes game state to PAUSED after each point
+        - Triggers countdown sequence before next play
+
+        Sound Effects:
+        - Plays wall hit sound
+        - Plays ball miss sound
+
+        Returns:
+            None
+        """
+        
         # If the ball touches the left wall, centres the ball and add one score to the opponent
         if self.ball.ball_shape.left <= 0:
             self.ball.reset()
@@ -351,6 +542,29 @@ class PongGame:
             self.state = GameState.PAUSED
 
     def update(self):
+        """
+        Updates the game state and object positions during active gameplay.
+
+        This method is called each frame during the game loop when the game state 
+        is RUNNING. It handles:
+        - Getting current keyboard input state
+        - Updating paddle positions based on player input
+        - Moving the ball and handling collisions
+        - Rotating the ball for visual effect
+        - Updating scores when points are scored
+
+        State Requirements:
+            - Only executes when self.state == GameState.RUNNING
+            - Uses pg.key.get_pressed() for keyboard input
+            - Updates left paddle (W/S keys), right paddle (UP/DOWN keys)
+            - Updates ball position and collisions
+            - Increments ball rotation angle
+            - Calls score_update() to handle scoring
+
+        Returns:
+            None
+        """
+        
         if self.state == GameState.RUNNING:
             # Gets keys from keyboard using PyGame
             keys = pg.key.get_pressed()
@@ -369,6 +583,22 @@ class PongGame:
 # CLASS FOR MAKING AND MOVING THE TWO PADDLES
 
 class Paddle:
+    """
+    A class representing a paddle in the Pong game.
+
+    This class handles the creation, rendering, and movement of paddles that players
+    use to hit the ball. Each paddle is a rectangular shape that can move vertically
+    within the game screen boundaries.
+
+    Attributes:
+        screen (pg.Surface): The game surface where the paddle will be drawn
+        paddle_shape (pg.Rect): The rectangular shape representing the paddle
+
+    Methods:
+        draw(): Renders the paddle on the screen
+        move(up_key, down_key): Moves the paddle up or down based on key inputs
+    """
+
     def __init__(self, screen: pg.Surface, x_cord, y_cord) -> None:
         self.screen = screen
 
@@ -393,6 +623,26 @@ class Paddle:
 # CLASS FOR MAKING AND MOVING THE BALL
 
 class Ball:
+    """
+    A class representing the ball in the Pong game.
+
+    This class handles the creation, rendering, movement and collision detection of the game ball.
+    The ball can be rendered either as a basic circle shape or using a provided image.
+    It moves across the screen and bounces off paddles and screen boundaries.
+
+    Attributes:
+        screen (pg.Surface): The game surface where the ball will be drawn
+        ball_image (pg.Surface | None): Optional image surface for the ball
+        ball_shape (pg.Rect): The rectangular shape representing the ball's hitbox
+        move_x (int): Horizontal movement speed and direction
+        move_y (int): Vertical movement speed and direction
+
+    Methods:
+        draw(angle): Renders the ball on screen, optionally with rotation
+        move(l_paddle, r_paddle): Updates ball position and handles collisions
+        reset(): Resets ball to center position
+    """
+
     def __init__(self, screen: pg.Surface, x_cord, y_cord, ball_image: pg.Surface | None = None) -> None:
         self.screen = screen
         self.ball_image = ball_image
