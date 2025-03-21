@@ -148,13 +148,16 @@ class PongGame:
         self.left_paddle = Paddle(self.background_surface, _x_margin, _screen_centre[1] - PADDLE_H // 2)
         self.right_paddle = Paddle(self.background_surface, SCREEN_W - _x_margin - PADDLE_W,
                                    _screen_centre[1] - PADDLE_H // 2)
-        # Give pong ball image to render the ball from the image
+        # Give pong ball image as the last parameter to render the ball from the image (if needed)
         self.ball = Ball(self.background_surface, _screen_centre[0] - BALL_SIZE // 2,
-                         _screen_centre[1] - BALL_SIZE // 2, self.files.pong_ball)
+                         _screen_centre[1] - BALL_SIZE // 2)
 
         # Initializing the game with both players' score 0 then update as condition
         self.left_score: int = 0
         self.right_score: int = 0
+
+        # Rotation angle for ball image (if given)
+        self.ball_rotation: float = 0
 
         # Number of missing ball. If it reaches BALL_MISS_TIMEOUT then,
         # the game terminates and display the winner and scores
@@ -245,7 +248,7 @@ class PongGame:
                 # Draws basic elements (Paddles, Ball) on the screen
                 self.left_paddle.draw()
                 self.right_paddle.draw()
-                self.ball.draw()
+                self.ball.draw()  # add rotation angle if ball image is given
 
                 # Places the scorecards
                 self.score_cards()
@@ -357,6 +360,8 @@ class PongGame:
             self.right_paddle.move(keys[pg.K_UP], keys[pg.K_DOWN])
             self.ball.move(self.left_paddle.paddle_shape, self.right_paddle.paddle_shape)
 
+            self.ball_rotation += 5
+
             # Updates the score
             self.score_update()
 
@@ -399,10 +404,15 @@ class Ball:
         self.move_x = BALL_SPEED
         self.move_y = BALL_SPEED
 
-    def draw(self) -> None:
+    def draw(self, angle: float | None = None) -> None:
         if self.ball_image:
-            # Renders the ball image if given
-            self.screen.blit(self.ball_image, (self.ball_shape.x, self.ball_shape.y))
+            if angle:
+                rotated_image = pg.transform.rotate(self.ball_image, angle=angle)
+                rotation_center = rotated_image.get_rect(center=self.ball_shape.center)
+                self.screen.blit(rotated_image, rotation_center)
+            else:
+                # Renders the ball image if given
+                self.screen.blit(self.ball_image, (self.ball_shape.x, self.ball_shape.y))
         else:
             # Draws the empty shape on the screen with color
             pg.draw.ellipse(self.screen, COLOR_DICTIONARY["Ball"], self.ball_shape)
