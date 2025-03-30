@@ -4,6 +4,7 @@ import time
 import pygame as pg
 import sys
 from os import path
+from typing import Literal
 
 
 
@@ -54,6 +55,7 @@ SOUND_EFFECTS: dict[str: str | bytes] = {
     "tick": f"{SOURCE_PATH}/SFX/ticks.wav",
     "game_over": f"{SOURCE_PATH}/SFX/game-over.wav",
     "result": f"{SOURCE_PATH}/SFX/result.wav",
+    "bg_music": f"{SOURCE_PATH}/SFX/background-music.mp3"  # Background music file path
 }
 
 # DERIVED VARIABLES
@@ -99,6 +101,11 @@ class SoundManager:
         # Loads sound effects from the given dictionary of sound names and paths
         self.sound_effects = {name: pg.mixer.Sound(path) for name, path in sfx_files.items()}
 
+        # Set up background music
+        if "bg_music" in self.sound_effects:
+            self.sound_effects["bg_music"].set_volume(0.5)
+            self.is_background_play: bool = False
+
     def play_stop_sfx(self, name: str, play: bool = True) -> None:
         """
         Plays or stops SFX with the name provided as an argument.
@@ -110,6 +117,24 @@ class SoundManager:
         if name in self.sound_effects:
             self.sound_effects[name].play() if play else self.sound_effects[name].stop()
 
+    def play_bg_music(self, play: bool = True, volume: int | None = None) -> None:
+        """
+        Plays the background music in a loop if not already played.
+        
+        :return: None
+        """
+
+        if "bg_music" in self.sound_effects:
+            if play and not self.is_background_play:
+                self.sound_effects["bg_music"].play(loops=-1)
+                self.is_background_play = True
+            elif not play and self.is_background_play:
+                self.sound_effects["bg_music"].stop()
+                self.is_background_play = False
+
+            if volume:
+                self.sound_effects["bg_music"].set_volume(volume)
+            
 
 # CLASS FOR GAME STATE
 
@@ -273,6 +298,7 @@ class PongGame:
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     self.state = GameState.START
                 elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    pg.mixer.quit()
                     pg.quit()
                     sys.exit()
                 elif event.type == pg.MOUSEBUTTONDOWN:
@@ -341,6 +367,9 @@ class PongGame:
         # Game state management
         match self.state:
             case GameState.START:
+                # Start/resume background music for welcome screen
+                sfx.play_bg_music()
+
                 # Resetting all the values to zeros
                 self.left_score = self.right_score = self.ball_miss_times = 0
                 self._result_sfx_play = False
@@ -357,6 +386,9 @@ class PongGame:
                 self.background_surface.blit(subtitle, (_screen_centre[0] - subtitle.get_width() // 2, SCREEN_H - 50))
 
             case GameState.RUNNING:
+                # Stop background music for gameplay
+                sfx.play_bg_music(play=False)
+
                 # Fills screen background with color
                 self.background_surface.blit(self.files.bg, (0, 0))
 
@@ -385,6 +417,9 @@ class PongGame:
                 self.next_move_countdown()
 
             case GameState.OVER:
+                # Resumes the background music for result screen
+                sfx.play_bg_music()
+
                 self.results()
 
     def next_move_countdown(self):
