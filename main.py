@@ -26,6 +26,8 @@ NAME: str = "PONG Game ○ Passion-Lab"
 PLAYERS: tuple[str, str] = ("Player A", "Player B")
 SCREEN_H: int = 600
 SCREEN_W: int = 800
+MIN_SCREEN_H: int = 400  # Minimum allowed height
+MIN_SCREEN_W: int = 600  # Minimum allowed width
 PADDLE_W: int = 10
 PADDLE_H: int = 100
 BALL_SIZE: int = 15
@@ -86,6 +88,43 @@ class FileLoader:
         self.btn_replay = pg.image.load(f"{SOURCE_PATH}/btn_replay.png")
         self.pong_ball = pg.image.load(f"{SOURCE_PATH}/pong_ball.png")
 
+        # Store original images for scaling
+        self.original_images = {
+            'banner': self.banner.copy(),
+            'bg': self.bg.copy(),
+            'bg_rect': self.bg_rect.copy(),
+            'winner_batch': self.winner_batch.copy(),
+            'btn_replay': self.btn_replay.copy(),
+            'pong_ball': self.pong_ball.copy()
+        }
+    
+    def scale_images(self, width, height):
+        """Scale images based on new screen dimensions"""
+        # Scale background to fill screen
+        self.bg = pg.transform.scale(self.original_images['bg'], (width, height))
+        
+        # Scale UI elements
+        ui_scale = min(width / SCREEN_W, height / SCREEN_H)
+        
+        """
+        self.banner = pg.transform.scale(self.original_images['banner'], (
+            int(self.original_images['banner'].get_width() * ui_scale),
+            int(self.original_images['banner'].get_height() * ui_scale)))
+        """
+        
+        self.bg_rect = pg.transform.scale(self.original_images['bg_rect'], (
+            int(self.original_images['bg_rect'].get_width() * ui_scale),
+            int(self.original_images['bg_rect'].get_height() * ui_scale)))
+        
+        self.winner_batch = pg.transform.scale(self.original_images['winner_batch'], (
+            int(self.original_images['winner_batch'].get_width() * ui_scale),
+            int(self.original_images['winner_batch'].get_height() * ui_scale)))
+        
+        """
+        self.btn_replay = pg.transform.scale(self.original_images['btn_replay'], (
+            int(self.original_images['btn_replay'].get_width() * ui_scale),
+            int(self.original_images['btn_replay'].get_height() * ui_scale)))
+        """
 
 # CLASS FOR SOUND MANAGEMENT
 
@@ -181,13 +220,22 @@ class PongGame:
         # Loading the necessary files to render later
         self.files = FileLoader()
 
-        self.screen: pg.Surface = pg.display.set_mode((SCREEN_W, SCREEN_H))  # pg.RESIZABLE argument for resizing the window
+        # Setup display size with resizable flag
+        self.screen: pg.Surface = pg.display.set_mode((SCREEN_W, SCREEN_H), pg.RESIZABLE)  # pg.RESIZABLE argument for resizing the window
         pg.display.set_caption(NAME)
         pg.display.set_icon(self.files.icon)
 
-        # Sets a transparent surface for text blit
-        self.background_surface: pg.Surface = pg.Surface((SCREEN_W, SCREEN_H))
-        self.transparent_surface: pg.Surface = pg.Surface((SCREEN_W, SCREEN_H), pg.SRCALPHA)
+        # Track current screen dimensions and fullscreen state
+        self.current_width = SCREEN_W
+        self.current_height = SCREEN_H
+        self.is_fullscreen = False
+        self.pre_fullscreen_size = (SCREEN_W, SCREEN_H)
+
+        # Scale images for initial dimensions
+        self.files.scale_images(self.current_width, self.current_height)
+
+        # Sets surfaces for rendering
+        self.update_surfaces()
 
         # Sets clock for frame rate
         self.clock = pg.time.Clock()
@@ -195,13 +243,46 @@ class PongGame:
         # Initializing game state to start for displaying the start screen
         self.state = GameState.START
 
-        # Creating paddles and ball_shape
-        self.left_paddle = Paddle(self.background_surface, _x_margin, _screen_centre[1] - PADDLE_H // 2)
-        self.right_paddle = Paddle(self.background_surface, SCREEN_W - _x_margin - PADDLE_W,
-                                   _screen_centre[1] - PADDLE_H // 2)
-        # Give pong ball image as the last parameter to render the ball from the image (if needed)
-        self.ball = Ball(self.background_surface, _screen_centre[0] - BALL_SIZE // 2,
-                         _screen_centre[1] - BALL_SIZE // 2)
+        # Initialize game elements
+        self.initialize_game_elements()
+
+        # Global elements
+        self._btn_replay: pg.Rect | None = None
+        self._result_sfx_play: bool = False
+
+    def update_surfaces(self):
+        """
+        Updates the background and transparent surfaces based on the current screen dimensions.
+        """
+
+        self.background_surface: pg.Surface = pg.Surface((self.current_width, self.current_height))
+        self.transparent_surface: pg.Surface = pg.Surface((self.current_width, self.current_height), pg.SRCALPHA)
+
+    def initialize_game_elements(self):
+        """Initialize or reinitialize game elements based on current screen dimensions"""
+        # Calculate center and margins based on current dimensions
+        self.screen_center = (self.current_width // 2, self.current_height // 2)
+        self.x_margin = self.current_width // 16  # Dynamic margin based on screen width
+
+        # Scale paddle size based on screen dimensions
+        paddle_height = min(self.current_height // 6, PADDLE_H * 2)  # Scale but with a maximum
+        paddle_width = max(self.current_width // 80, PADDLE_W)  # Scale but with a minimum
+        
+        # Scale ball size based on screen dimensions
+        ball_size = max(min(self.current_width, self.current_height) // 40, BALL_SIZE)
+
+        # Creating two paddles and a ball
+        self.left_paddle = Paddle(self.background_surface, self.x_margin, 
+                                 self.screen_center[1] - paddle_height // 2,
+                                 paddle_width, paddle_height)
+        self.right_paddle = Paddle(self.background_surface, 
+                                  self.current_width - self.x_margin - paddle_width,
+                                  self.screen_center[1] - paddle_height // 2,
+                                  paddle_width, paddle_height)
+        self.ball = Ball(self.background_surface, 
+                        self.screen_center[0] - ball_size // 2,
+                        self.screen_center[1] - ball_size // 2,
+                        ball_size=ball_size)
 
         # Initializing the game with both players' score 0 then update as condition
         self.left_score: int = 0
@@ -213,10 +294,57 @@ class PongGame:
         # Number of missing ball. If it reaches BALL_MISS_TIMEOUT then,
         # the game terminates and display the winner and scores
         self.ball_miss_times: int = 0
+    
+    def handle_resize(self, new_size: tuple[int, int]):
+        """Handle window resize events"""
+        # Ensure minimum dimensions
+        new_width = max(new_size[0], MIN_SCREEN_W)
+        new_height = max(new_size[1], MIN_SCREEN_H)
+        
+        # Update current dimensions
+        self.current_width = new_width
+        self.current_height = new_height
+        
+        # Update the display
+        self.screen = pg.display.set_mode(
+            (new_width, new_height), pg.RESIZABLE if not self.is_fullscreen else pg.FULLSCREEN
+        )
+        
+        # Scale images for new dimensions
+        self.files.scale_images(new_width, new_height)
 
-        # Global elements
-        self._btn_replay: pg.Rect | None = None
-        self._result_sfx_play: bool = False
+        # Update surfaces and game elements
+        self.update_surfaces()
+        self.initialize_game_elements()
+    
+    def toggle_fullscreen(self):
+        """Toggle between fullscreen and windowed mode"""
+        if not self.is_fullscreen:
+            # Save current window size before going fullscreen
+            self.pre_fullscreen_size = (self.current_width, self.current_height)
+            
+            # Get display info for fullscreen dimensions
+            # - first, set a temporary fullscreen mode to get the actual dimensions
+            temp_screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+            self.current_width, self.current_height = temp_screen.get_size()
+            
+            # Set fullscreen mode
+            self.screen = pg.display.set_mode((self.current_width, self.current_height), pg.FULLSCREEN)
+            self.is_fullscreen = True
+        else:
+            # Restore previous window size
+            self.current_width, self.current_height = self.pre_fullscreen_size
+            
+            # Set windowed mode
+            self.screen = pg.display.set_mode((self.current_width, self.current_height), pg.RESIZABLE)
+            self.is_fullscreen = False
+        
+        # Scale images for new dimensions
+        self.files.scale_images(self.current_width, self.current_height)
+
+        # Update surfaces and game elements
+        self.update_surfaces()
+        self.initialize_game_elements()
 
     def run(self):
         """
@@ -279,31 +407,46 @@ class PongGame:
 
             # Quiting the game
             if event.type == pg.QUIT:
+                pg.mixer.quit()
                 pg.quit()
                 sys.exit()
+            
+            # Handles window resize
+            elif event.type == pg.VIDEORESIZE:
+                if not self.is_fullscreen:
+                    self.handle_resize((event.w, event.h))
 
-            # Handles game state changes
-            if self.state == GameState.START:
-                if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                    self.state = GameState.RUNNING
-                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                    pass
-            elif self.state == GameState.RUNNING:
-                if event.type == pg.KEYDOWN and (event.key == pg.K_ESCAPE or event.key == pg.K_SPACE):
-                    self.state = GameState.HOLD
-            elif self.state == GameState.HOLD:
-                if event.type == pg.KEYDOWN and (event.key == pg.K_ESCAPE or event.key == pg.K_SPACE):
-                    self.state = GameState.RUNNING
-            elif self.state == GameState.OVER:
-                if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                    self.state = GameState.START
-                elif event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
-                    pg.mixer.quit()
-                    pg.quit()
-                    sys.exit()
-                elif event.type == pg.MOUSEBUTTONDOWN:
+            # Handle keyboard events
+            elif event.type == pg.KEYDOWN:
+                # Toggle fullscreen with F11
+                if event.key == pg.K_F11:
+                    self.toggle_fullscreen()
+                    
+                # Handle game state changes
+                if self.state == GameState.START:
+                    if event.key == pg.K_SPACE:
+                        self.state = GameState.RUNNING
+                    if event.key == pg.K_ESCAPE:
+                        pass
+                elif self.state == GameState.RUNNING:
+                    if event.key == pg.K_ESCAPE or event.key == pg.K_SPACE:
+                        self.state = GameState.HOLD
+                elif self.state == GameState.HOLD:
+                    if event.key == pg.K_ESCAPE or event.key == pg.K_SPACE:
+                        self.state = GameState.RUNNING
+                elif self.state == GameState.OVER:
+                    if event.key == pg.K_SPACE:
+                        self.state = GameState.START
+                    elif event.key == pg.K_ESCAPE:
+                        pg.mixer.quit()
+                        pg.quit()
+                        sys.exit()
+                        
+            # Handle mouse events
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if self.state == GameState.OVER:
                     # If replay button is pressed from the result screen
-                    if self._btn_replay.collidepoint(event.pos):
+                    if self._btn_replay and self._btn_replay.collidepoint(event.pos):
                         self.state = GameState.START
 
     def score_cards(self):
@@ -333,12 +476,12 @@ class PongGame:
         player_b_text = self.files.text_font.render(PLAYERS[1], True, COLOR_DICTIONARY["Grey"])
         right_score_text = self.files.num_font.render(str(self.right_score), True, COLOR_DICTIONARY["Ball"])
 
-        # Places the texts on the screen
-        self.background_surface.blit(left_score_text, (_x_margin, _x_margin))
-        self.background_surface.blit(player_a_text, (_x_margin, _x_margin + left_score_text.get_height()))
-        self.background_surface.blit(right_score_text, (SCREEN_W - _x_margin - right_score_text.get_width(), _x_margin))
-        self.background_surface.blit(player_b_text, (SCREEN_W - _x_margin - player_b_text.get_width(),
-                                                     _x_margin + right_score_text.get_height()))
+        # Places the texts on the screen with dynamic positioning
+        self.background_surface.blit(left_score_text, (self.x_margin, self.x_margin))
+        self.background_surface.blit(player_a_text, (self.x_margin, self.x_margin + left_score_text.get_height()))
+        self.background_surface.blit(right_score_text, (self.current_width - self.x_margin - right_score_text.get_width(), self.x_margin))
+        self.background_surface.blit(player_b_text, (self.current_width - self.x_margin - player_b_text.get_width(),
+                                                     self.x_margin + right_score_text.get_height()))
 
     def draw_all(self):
         """
@@ -379,11 +522,12 @@ class PongGame:
                 # t1= pg.draw.rect(self.background_surface, COLOR_DICTIONARY["White"], top)
                 self.background_surface.blit(self.files.bg, (0, 0))
                 self.background_surface.blit(self.files.banner,
-                                             (_screen_centre[0] - self.files.banner.get_width() // 2,
-                                              _screen_centre[1] - self.files.banner.get_height() // 2))
+                                             (self.screen_center[0] - self.files.banner.get_width() // 2,
+                                              self.screen_center[1] - self.files.banner.get_height() // 2))
                 
                 subtitle = self.files.text_font.render("Press SPACE to Start", True, COLOR_DICTIONARY["Paddle"])
-                self.background_surface.blit(subtitle, (_screen_centre[0] - subtitle.get_width() // 2, SCREEN_H - 50))
+                self.background_surface.blit(subtitle, (
+                    self.screen_center[0] - subtitle.get_width() // 2, self.current_height - int(self.current_height / 12)))
 
             case GameState.RUNNING:
                 # Stop background music for gameplay
@@ -404,16 +548,16 @@ class PongGame:
                 self.transparent_surface.fill((0, 0, 0, 0))
                 _t1 = self.files.num_font.render("PAUSED", True, COLOR_DICTIONARY["Ball"])
                 _t2 = self.files.text_font.render("Press SPACE or ESC to resume", True, COLOR_DICTIONARY["Ball"])
-                self.transparent_surface.blit(_t1, (_screen_centre[0] - _t1.get_width() // 2,
-                                                    _screen_centre[1] - _t1.get_height() // 2 - _t2.get_height() // 2))
-                self.transparent_surface.blit(_t2, (_screen_centre[0] - _t2.get_width() // 2,
-                                                    _screen_centre[1] - _t2.get_height() // 2 + _t1.get_height() // 2))
+                self.transparent_surface.blit(_t1, (self.screen_center[0] - _t1.get_width() // 2,
+                                                    self.screen_center[1] - _t1.get_height() // 2 - _t2.get_height() // 2))
+                self.transparent_surface.blit(_t2, (self.screen_center[0] - _t2.get_width() // 2,
+                                                    self.screen_center[1] - _t2.get_height() // 2 + _t1.get_height() // 2))
                 self.screen.blit(self.transparent_surface, (0, 0))
 
             case GameState.PAUSED:
                 self.background_surface.blit(self.files.bg_rect,
-                                             (_screen_centre[0] - self.files.bg_rect.get_width() // 2,
-                                              _screen_centre[1] - self.files.bg_rect.get_height() // 2))
+                                             (self.screen_center[0] - self.files.bg_rect.get_width() // 2,
+                                              self.screen_center[1] - self.files.bg_rect.get_height() // 2))
                 self.next_move_countdown()
 
             case GameState.OVER:
@@ -459,15 +603,15 @@ class PongGame:
             tc = (str(i), COLOR_DICTIONARY["Dark Grey"]) if self.ball_miss_times != 5 else ("GAME OVER",
                                                                                             COLOR_DICTIONARY["Red"])
             cd_text = self.files.num_font.render(tc[0], True, tc[1])
-            help_text = self.files.text_font.render(f"{self.ball_miss_times} Ball Missed. "
+            help_text = self.files.text_font.render(f"{self.ball_miss_times} Ball Missed. " 
                                                     f"({BALL_MISS_TIMEOUT - self.ball_miss_times} Left)", True,
                                                     tc[1] if self.ball_miss_times < 3 else COLOR_DICTIONARY["Ball"])
             self.transparent_surface.blit(
-                cd_text, (_screen_centre[0] - cd_text.get_width() // 2,
-                          _screen_centre[1] - cd_text.get_height() // 2 - help_text.get_height() // 1.5))
+                cd_text, (self.screen_center[0] - cd_text.get_width() // 2,
+                          self.screen_center[1] - cd_text.get_height() // 2 - help_text.get_height() // 1.5))
             self.transparent_surface.blit(
-                help_text, (_screen_centre[0] - help_text.get_width() // 2,
-                            _screen_centre[1] - help_text.get_height() // 2 + help_text.get_height() // 1.5))
+                help_text, (self.screen_center[0] - help_text.get_width() // 2,
+                            self.screen_center[1] - help_text.get_height() // 2 + help_text.get_height() // 1.5))
 
             # First blit what it's in the background surface, then the transparent surface on top
             self.screen.blit(self.background_surface, (0, 0))
@@ -514,13 +658,14 @@ class PongGame:
 
         self.background_surface.blit(self.files.bg, (0, 0))
         self.background_surface.blit(self.files.winner_batch,
-                                     (_screen_centre[0] - self.files.winner_batch.get_width() // 2, 0))
+                                     (self.screen_center[0] - self.files.winner_batch.get_width() // 2, 0))
         _b1 = self._btn_replay = self.background_surface.blit(
-            self.files.btn_replay, (_screen_centre[0] - self.files.btn_replay.get_width() // 2,
-                                    SCREEN_H - self.files.btn_replay.get_height() - 50))
+            self.files.btn_replay, (self.screen_center[0] - self.files.btn_replay.get_width() // 2,
+                                    self.current_height - self.files.btn_replay.get_height() - int(self.current_height / 12)))
         subtitle = self.files.text_font.render("or, Press SPACE to Start", True, COLOR_DICTIONARY["Dark Grey"])
-        self.background_surface.blit(subtitle, (_screen_centre[0] - subtitle.get_width() // 2, _b1.bottom + 10))
+        self.background_surface.blit(subtitle, (self.screen_center[0] - subtitle.get_width() // 2, _b1.bottom + 10))
 
+        # Determine winner text
         if self.left_score > self.right_score:
             winner = f"{PLAYERS[0]}, Congratulations!"
         elif self.right_score > self.left_score:
@@ -529,9 +674,9 @@ class PongGame:
             winner = "MATCH DRAW"
         _text1 = self.files.num_font.render(winner, True, COLOR_DICTIONARY["Yellow"])
         _text2 = self.files.text_font.render("Well Played! Keep It Up!", True, COLOR_DICTIONARY["Grey"])
-        _t1 = self.background_surface.blit(_text1, (_screen_centre[0] - _text1.get_width() // 2,
+        _t1 = self.background_surface.blit(_text1, (self.screen_center[0] - _text1.get_width() // 2,
                                                     self.files.winner_batch.get_height() + 20))
-        self.background_surface.blit(_text2, (_screen_centre[0] - _text2.get_width() // 2, _t1.bottom + 10))
+        self.background_surface.blit(_text2, (self.screen_center[0] - _text2.get_width() // 2, _t1.bottom + 10))
 
     def score_update(self):
         """
@@ -569,7 +714,7 @@ class PongGame:
             self.state = GameState.PAUSED
 
         # If the ball touches the right wall, centres the ball and add one score to the opponent
-        if self.ball.ball_shape.right >= SCREEN_W:
+        if self.ball.ball_shape.right >= self.current_width:
             self.ball.reset()
             sfx.play_stop_sfx("wall_hit")
             sfx.play_stop_sfx("hit_miss")
@@ -634,25 +779,30 @@ class Paddle:
         move(up_key, down_key): Moves the paddle up or down based on key inputs
     """
 
-    def __init__(self, screen: pg.Surface, x_cord, y_cord) -> None:
+    def __init__(self, screen: pg.Surface, x_cord, y_cord, width=PADDLE_W, height=PADDLE_H) -> None:
         self.screen = screen
 
-        # Creates an empty shape the paddle_shape
-        self.paddle_shape = pg.Rect(x_cord, y_cord, PADDLE_W, PADDLE_H)
+        # Stores current dimensions for future user/reference
+        self.width, self.height = width, height
+
+        # Creates an empty shape the paddle_shape with custom dimensions
+        self.paddle_shape = pg.Rect(x_cord, y_cord, width, height)
+
+        # Calculates dynamic paddle moving speed based on screen height
+        self.speed = max(screen.get_height() // 60, PADDLE_SPEED)
 
     def draw(self) -> None:
         # Draws the empty shape on the screen with color
         pg.draw.rect(self.screen, COLOR_DICTIONARY["Paddle"], self.paddle_shape)
 
     def move(self, up_key: bool, down_key: bool) -> None:
-
         # If up key pressed, the paddle_shape moves upward
         if up_key and self.paddle_shape.top > 0:
-            self.paddle_shape.y -= PADDLE_SPEED
+            self.paddle_shape.y -= self.speed
 
         # The paddle_shape moves downward for the down key pressed
-        if down_key and self.paddle_shape.bottom < SCREEN_H:
-            self.paddle_shape.y += PADDLE_SPEED
+        if down_key and self.paddle_shape.bottom < self.screen.get_height():
+            self.paddle_shape.y += self.speed
 
 
 # CLASS FOR MAKING AND MOVING THE BALL
@@ -678,16 +828,24 @@ class Ball:
         reset(): Resets ball to center position
     """
 
-    def __init__(self, screen: pg.Surface, x_cord, y_cord, ball_image: pg.Surface | None = None) -> None:
+    def __init__(self, screen: pg.Surface, x_cord, y_cord, ball_image: pg.Surface | None = None, ball_size=BALL_SIZE) -> None:
         self.screen = screen
         self.ball_image = ball_image
+        self.ball_size = ball_size
 
         # Gets ball image's rect if image surface is given or, Creates an empty shape of the ball_shape
-        self.ball_shape = self.ball_image.get_rect() if self.ball_image else pg.Rect(x_cord, y_cord, BALL_SIZE, BALL_SIZE)
-
+        if self.ball_image:
+            self.ball_image = pg.transform.scale(ball_image, (ball_size, ball_size))
+            self.ball_shape = self.ball_image.get_rect(topleft=(x_cord, y_cord))
+        else:
+            self.ball_shape = pg.Rect(x_cord, y_cord, ball_size, ball_size)
+        
+        # Calculates dynamic ball speed based on screen width
+        self.speed = max(screen.get_width() // 200, BALL_SPEED)
+        
         # For moving the ball_shape to the reverse direction later
-        self.move_x = BALL_SPEED
-        self.move_y = BALL_SPEED
+        self.move_x = self.speed
+        self.move_y = self.speed
 
     def draw(self, angle: float | None = None) -> None:
         if self.ball_image:
@@ -722,7 +880,7 @@ class Ball:
         self.ball_shape.y += self.move_y
 
         # If the ball_shape touches the top and the bottom wall, then it moves vertically reverse direction
-        if self.ball_shape.top <= 0 or self.ball_shape.bottom >= SCREEN_H:
+        if self.ball_shape.top <= 0 or self.ball_shape.bottom >= self.screen.get_height():
             self.move_y *= -1
             sfx.play_stop_sfx("wall_hit")
         # Left and right wall collision of the ball_shape should be implemented later
@@ -735,8 +893,10 @@ class Ball:
 
     def reset(self) -> None:
         # Place the ball_shape to the centre of the screen
-        self.ball_shape.x = _screen_centre[0] - BALL_SIZE // 2
-        self.ball_shape.y = _screen_centre[1] - BALL_SIZE // 2
+        screen_centre = (self.screen.get_width() //2, self.screen.get_height() // 2)
+
+        self.ball_shape.x = screen_centre[0] - self.ball_size // 2
+        self.ball_shape.y = screen_centre[1] - self.ball_size // 2
 
         # Change the ball_shape's moving direction to the opposite of before
         self.move_x *= -1
