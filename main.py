@@ -515,6 +515,8 @@ class PongGame:
 
                 # Resetting all the values to zeros
                 self.left_score = self.right_score = self.ball_miss_times = 0
+                self.left_paddle.reset()
+                self.right_paddle.reset()
                 self._result_sfx_play = False
 
                 # todo: Blank top space for score and other rendering
@@ -803,6 +805,9 @@ class Paddle:
         # The paddle_shape moves downward for the down key pressed
         if down_key and self.paddle_shape.bottom < self.screen.get_height():
             self.paddle_shape.y += self.speed
+
+    def reset(self):
+        self.paddle_shape.y = self.screen.get_height() // 2 - self.height // 2
 
 
 # CLASS FOR MAKING AND MOVING THE BALL
