@@ -893,7 +893,7 @@ class Ball:
 
     def reset(self) -> None:
         # Place the ball_shape to the centre of the screen
-        screen_centre = (self.screen.get_width() //2, self.screen.get_height() // 2)
+        screen_centre = (self.screen.get_width() // 2, self.screen.get_height() // 2)
 
         self.ball_shape.x = screen_centre[0] - self.ball_size // 2
         self.ball_shape.y = screen_centre[1] - self.ball_size // 2
