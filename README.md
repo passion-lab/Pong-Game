@@ -55,7 +55,7 @@ Only by moving the two Paddles up and down to protect the ball from touching the
 - [x] Using suitable fonts.
 - [x] Adding background music.
 - [ ] Enabling to enter players' names before start.
-- [ ] Adding ball grpahic.
+- [x] Adding ball grpahic.
 - [ ] Adding the Paddles graphics.
 - [ ] Taking players' feedback.
 
