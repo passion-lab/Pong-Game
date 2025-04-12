@@ -112,6 +112,26 @@ Only by moving the two Paddles up and down to protect the ball from touching the
 </p>
 <p align="center">|</p>
 
+
+### Download:
+The latest released OS (Windows and Linux currently) specific binary installer or setup files are hosted in the two locations below. Download from the one that best suits you:
+
+- Download from SourceForge:
+
+    <a href="https://sourceforge.net/projects/pong-game/files/latest/download"><img alt="Download Pong Game" src="https://a.fsdn.com/con/app/sf-download-button" width=276 height=48 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x">
+    </a>
+
+    *or,*
+- Download from GitHub Release:
+
+    [Get the Latest Version](https://github.com/passion-lab/Pong-Game/releases/tag/v1.0.0)
+
+<p align="center">|</p>
+<p align="center">
+    <img src="sources/icon.png" alt="Pong Game Icon" />
+</p>
+<p align="center">|</p>
+
 ### Credit(s):
  - [Passion-Lab](https://www.github.com/passion-lab)
  - [ChatGPT](https://chat.openai.com/)
