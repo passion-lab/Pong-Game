@@ -1,5 +1,22 @@
+<!-- SF Tag -->
+<p align="center">
+    <a href="https://sourceforge.net/projects/pong-game/"  target="_blank">
+        <img src="https://sourceforge.net/cdn/syndication/badge_img/3858031/oss-users-love-us-white?&r=https://sourceforge.net/p/pong-game/admin/files-sf/badges" alt="" width="125px" />
+    </a>
+</p>
+
+
+<!-- Title Banner -->
 <p align="center">
     <img src="Screenshot/Game-Banner.png" alt="Pong Game by Passion-Lab Logo" />
+</p>
+
+
+<!-- Badges -->
+<p align="center">
+    <a href="https://sourceforge.net/projects/pong-game/files/latest/download" target="_blank">
+        <img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dt/pong-game.svg" />
+    </a>
 </p>
 
 
@@ -53,9 +70,11 @@ Only by moving the two Paddles up and down to protect the ball from touching the
 - [x] Adding SFX.
 - [x] Adding graphics to start, playing and end screens.
 - [x] Using suitable fonts.
-- [ ] Adding background music.
+- [x] Adding background music.
 - [ ] Enabling to enter players' names before start.
-- [ ] Adding ball grpahic.
+- [x] Adding ball grpahic.
+- [x] Enabling resizinng, maximizing, restoring game window.
+- [x] Fullscreen immersive experience.
 - [ ] Adding the Paddles graphics.
 - [ ] Taking players' feedback.
 
