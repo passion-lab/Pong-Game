@@ -17,6 +17,9 @@
     <a href="https://sourceforge.net/projects/pong-game/files/latest/download" target="_blank">
         <img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dt/pong-game.svg" />
     </a>
+    <a href="https://sourceforge.net/projects/pong-game/files/latest/download">
+	<img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dm/pong-game.svg" >
+    </a>
 </p>
 
 
