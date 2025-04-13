@@ -31,7 +31,7 @@ Pong Game or Table Tennis Game. This computer digital game is made with PyGame m
 </p>
 <p align="center">|</p>
 
-### Game Features:
+## Game Features:
 - **Stunnig visuals and graphics** made for a good looking and minimal UI.
 - **Perfect sound effects** make every action lively.
 - Can be played in **two different modes**:
@@ -113,7 +113,7 @@ Only by moving the two Paddles up and down to protect the ball from touching the
 <p align="center">|</p>
 
 
-### Download:
+## Download:
 The latest released OS (Windows and Linux currently) specific binary installer or setup files are hosted in the two locations below. Download from the one that best suits you:
 
 - Download from SourceForge:
