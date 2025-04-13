@@ -133,7 +133,7 @@ The latest released OS (Windows and Linux currently) specific binary installer o
 </p>
 <p align="center">|</p>
 
-### Credit(s):
+## Credit(s):
  - [Passion-Lab](https://www.github.com/passion-lab)
  - [ChatGPT](https://chat.openai.com/)
  - [Python](https://www.python.org)
