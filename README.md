@@ -126,6 +126,7 @@ The latest released OS (Windows and Linux currently) specific binary installer o
 
     [Get the Latest Version](https://github.com/passion-lab/Pong-Game/releases/tag/v1.0.0)
 
+<br>
 <p align="center">|</p>
 <p align="center">
     <img src="sources/icon.png" alt="Pong Game Icon" />
@@ -144,3 +145,6 @@ The latest released OS (Windows and Linux currently) specific binary installer o
 
 
 <p align="center"><b>Pong Game</b> | Made with ❤️ by <a href="https://www.github.com/passion-lab">Passion-Lab</a></p>
+<p align="center">
+    <a href="https://sourceforge.net/p/pong-game/"><img alt="Download Pong Game" src="https://sourceforge.net/sflogo.php?type=17&amp;group_id=3858031" width=200></a>
+</p>
