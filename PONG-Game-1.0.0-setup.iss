@@ -5,6 +5,7 @@
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Passion-Lab"
 #define MyAppURL "https://www.passion-lab.github.io/"
+#define MyAppUpdatesURL "https://www.github.com/passion-lab/Pong-Game/releases/latest"
 #define MyAppExeName "Pong.exe"
 
 [Setup]
@@ -17,7 +18,7 @@ AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}
+AppUpdatesURL={#MyAppUpdatesURL}
 DefaultDirName={autopf}\Passion-Lab\PONG Game
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
