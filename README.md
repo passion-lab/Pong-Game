@@ -18,7 +18,7 @@
         <img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dt/pong-game.svg" />
     </a>
 	<a href="https://github.com/passion-lab/Pong-Game/releases/latest">
-		<img alt="GitHub Release" src="https://img.shields.io/github/v/release/passion-lab/Pong-Game?include_prereleases&sort=date&logo=tag">
+		<img alt="Latest Release" src="https://img.shields.io/github/v/release/passion-lab/Pong-Game?include_prereleases&sort=date&color=09bd00">
 	</a>
     <a href="https://sourceforge.net/projects/pong-game/files/latest/download">
 		<img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dm/pong-game.svg" >
