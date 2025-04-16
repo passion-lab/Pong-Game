@@ -17,10 +17,25 @@
     <a href="https://sourceforge.net/projects/pong-game/files/latest/download" target="_blank">
         <img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dt/pong-game.svg" />
     </a>
+	<a href="https://github.com/passion-lab/Pong-Game/releases/latest">
+		<img alt="GitHub Release" src="https://img.shields.io/github/v/release/passion-lab/Pong-Game?include_prereleases&sort=date&logo=tag">
+	</a>
     <a href="https://sourceforge.net/projects/pong-game/files/latest/download">
-	<img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dm/pong-game.svg" >
+		<img alt="Download Pong Game" src="https://img.shields.io/sourceforge/dm/pong-game.svg" >
     </a>
 </p>
+<p align="center">
+	<a href="https://github.com/Passion-Lab">
+		<img alt="Passion-Lab" src="https://img.shields.io/badge/author-Passion--Lab-blue?style=flat-square">		
+    </a>
+	<a href="https://github.com/pygame/pygame">
+		<img alt="Python-Pygame" src="https://img.shields.io/badge/-PyGame-seagreen?style=flat-square&logo=python&logoColor=white">
+	</a>
+	<a href="https://github.com/passion-lab/Pong-Game/blob/central/LICENSE">
+		<img alt="MIT-License" src="https://img.shields.io/github/license/passion-lab/Pong-Game?style=flat-square">
+	</a>
+</p>
+
 
 
 # Pong Game
